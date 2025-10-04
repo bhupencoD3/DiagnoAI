@@ -1,0 +1,20 @@
+{
+  "processing_date": "2025-10-04 16:44:07",
+  "data_source": "MedlinePlus XML",
+  "summary": {
+    "total_topics": 1017,
+    "total_chunks": 923,
+    "average_quality_score": 65.3,
+    "chunks_per_topic": 0.91
+  },
+  "quality_distribution": {
+    "excellent_80_100": 65,
+    "good_50_79": 933,
+    "poor_0_49": 19
+  },
+  "percentages": {
+    "excellent_percent": 6.4,
+    "good_percent": 91.7,
+    "poor_percent": 1.9
+  }
+}
