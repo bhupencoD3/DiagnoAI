@@ -1,0 +1,34 @@
+{
+  "pipeline_stats": {
+    "total_topics": 10000,
+    "total_chunks": 11612,
+    "chunks_per_topic": 1.1612,
+    "avg_chunk_size_words": 122.78039958663452,
+    "avg_chunk_size_chars": 841.3777127109886,
+    "processing_date": "2025-10-09T14:00:09.439592",
+    "pipeline_duration": "Unknown"
+  },
+  "chunk_distribution": {
+    "small_chunks_<100": 6632,
+    "medium_chunks_100_300": 4745,
+    "large_chunks_300_plus": 235,
+    "distribution_percentage": {
+      "small": "57.1%",
+      "medium": "40.9%",
+      "large": "2.0%"
+    },
+    "size_range": {
+      "min": 2,
+      "max": 7743,
+      "avg": 122.78039958663452
+    }
+  },
+  "data_source": "Medical Meadow QA",
+  "data_format": "Question-Answer",
+  "chunker_config": {
+    "target_chunk_size": 250,
+    "min_chunk_size": 100,
+    "max_chunk_size": 400,
+    "chunker_type": "Enhanced Balanced Chunker"
+  }
+}
