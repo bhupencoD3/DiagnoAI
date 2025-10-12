@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="description" content="DiagnoAI: AI-powered medical assistant for symptom checking and health information. Not a substitute for professional care.">
+  <title>DiagnoAI — Medical RAG Assistant</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><circle cx='50' cy='40' r='12' fill='%2300f2fe'/><path d='M30 70 L45 55 L55 65 L70 50' stroke='%23ff4b2b' stroke-width='6' fill='none' stroke-linecap='round'/></svg>">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Manrope:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  </noscript>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(0, 30, 60, 0.2) 0%, transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(0, 80, 120, 0.15) 0%, transparent 35%),
+        radial-gradient(circle at 50% 110%, rgba(0, 20, 40, 0.1) 0%, transparent 50%),
+        #000;
+      color: #e0e0e0;
+      min-height: 100vh;
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 0 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 20px 16px 180px;
+    }
+    header {
+      text-align: center;
+      padding: 16px 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pulse-icon {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 32px;
+      background: linear-gradient(90deg, 
+        #00f2fe, #4facfe, #667eea, #764ba2, #667eea, #4facfe, #00f2fe);
+      background-size: 400% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      text-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+      line-height: 1;
+      margin: 0;
+      animation: gradientFlow 4s ease-in-out infinite;
+      filter: brightness(1.1);
+    }
+    @keyframes gradientFlow {
+      0%, 100% {
+        background-position: 0% 50%;
+        text-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+      }
+      50% {
+        background-position: 100% 50%;
+        text-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+      }
+    }
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      font-weight: 400;
+      margin-top: 2px;
+      line-height: 1;
+    }
+    .disclaimer-banner {
+      background: rgba(255, 107, 107, 0.15);
+      border-left: 3px solid #ff6b6b;
+      padding: 8px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      margin: 0 auto 12px;
+      max-width: 84%;
+      color: #ffafaf;
+      font-weight: 500;
+      text-align: left;
+    }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+      max-height: calc(100vh - 400px);
+      padding-bottom: 20px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .chat-box::-webkit-scrollbar {
+      display: none;
+    }
+    .message:not(.welcome-message) .content {
+      white-space: pre-wrap;
+    }
+    .message {
+      max-width: 84%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      line-height: 1.5;
+      animation: fadeIn 0.25s ease;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      word-wrap: break-word;
+      backdrop-filter: blur(3px);
+      position: relative;
+      font-size: 15px;
+    }
+    .ai-message.new {
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+      animation: glow 1.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 0 rgba(0, 242, 254, 0.3); }
+      50% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+    }
+    .user-message {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      align-self: flex-end;
+      border-bottom-right-radius: 6px;
+    }
+    .ai-message {
+      background: linear-gradient(135deg, #0d0d1a, #0a0f1a);
+      align-self: flex-start;
+      border-bottom-left-radius: 6px;
+      border-left: 2px solid #00f2fe;
+    }
+    .content {
+      line-height: 1.6;
+    }
+    .content strong {
+      color: #fff;
+      font-weight: 600;
+    }
+    .content ul,
+    .content ol {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+    .content li {
+      margin: 6px 0;
+    }
+    .content p {
+      margin: 10px 0;
+    }
+    .message-meta {
+      font-size: 10px;
+      color: #777;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .copy-btn {
+      background: rgba(0, 242, 254, 0.15);
+      border: none;
+      color: #00f2fe;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 9px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .ai-message:hover .copy-btn {
+      opacity: 1;
+    }
+    .medical-term {
+      border-bottom: 2px dotted;
+      cursor: help;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      padding: 1px 3px;
+      border-radius: 4px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .medical-term:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .medical-term.serious { border-color: #ff6b6b; background: rgba(255, 107, 107, 0.1); }
+    .medical-term.moderate { border-color: #feca57; background: rgba(254, 202, 87, 0.1); }
+    .medical-term.mild { border-color: #54a0ff; background: rgba(84, 160, 255, 0.1); }
+    .medical-term.info { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.1); }
+    .medical-term.emergency { border-color: #ff0000; background: rgba(255, 0, 0, 0.1); }
+    .medical-term.unknown { border-color: #888; background: rgba(136, 136, 136, 0.1); }
+    .medical-tooltip {
+      position: fixed;
+      background: rgba(13, 13, 26, 0.98);
+      backdrop-filter: blur(20px);
+      border: 2px solid;
+      border-radius: 16px;
+      padding: 0;
+      width: 420px;
+      max-width: 90vw;
+      font-size: 14px;
+      line-height: 1.5;
+      z-index: 10000;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .medical-tooltip.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .medical-tooltip::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 10px solid transparent;
+      z-index: 1;
+    }
+    .medical-tooltip:not(.tooltip-below)::after {
+      top: 100%;
+      border-top-color: inherit;
+    }
+    .medical-tooltip.tooltip-below::after {
+      bottom: 100%;
+      border-bottom-color: inherit;
+      border-top-color: transparent;
+    }
+    .tooltip-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tooltip-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .term-category {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: white;
+    }
+    .tooltip-close {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .tooltip-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .tooltip-body {
+      padding: 16px 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .tooltip-definition {
+      color: #e0e0e0;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .tooltip-severity {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .severity-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .severity-emergency { background: #ff0000; }
+    .severity-serious { background: #ff6b6b; }
+    .severity-moderate { background: #feca57; }
+    .severity-mild { background: #54a0ff; }
+    .severity-info { background: #4ecdc4; }
+    .tooltip-footer {
+      padding: 12px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #888;
+    }
+    .tooltip-source {
+      font-style: italic;
+    }
+    .tooltip-learn-more {
+      color: #00f2fe;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .tooltip-learn-more:hover {
+      text-decoration: underline;
+    }
+    .input-area {
+      display: flex;
+      gap: 10px;
+      padding: 16px 0;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 868px;
+      background: rgba(0,0,0,0.7);
+      padding: 12px 16px;
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    textarea {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 24px;
+      padding: 14px 20px;
+      resize: none;
+      height: 54px;
+      font-size: 15px;
+      outline: none;
+      font-family: 'Manrope', sans-serif;
+      transition: all 0.3s ease;
+    }
+    textarea:focus {
+      border-color: #00f2fe;
+      box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.25);
+      transform: translateY(-1px);
+    }
+    .action-button {
+      border: none;
+      border-radius: 24px;
+      height: 54px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      font-size: 15px;
+      font-family: 'Manrope', sans-serif;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    }
+    #sendBtn {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      min-width: 76px;
+    }
+    #sendBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(0, 198, 255, 0.45);
+    }
+    .clear-button {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: white;
+    }
+    .clear-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 14px rgba(255, 75, 43, 0.45);
+    }
+    button:disabled {
+      opacity: 0.6;
+      transform: none;
+      cursor: not-allowed;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0, 242, 254, 0.3);
+      border-top: 2px solid #00f2fe;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .thinking {
+      color: #00f2fe;
+      font-style: italic;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      max-width: 84%;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #0d0d1a, #0a0f1a);
+      border-radius: 18px;
+      border-left: 2px solid #00f2fe;
+      align-self: flex-start;
+      margin-bottom: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thinking-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .thinking-text {
+      background: linear-gradient(90deg, 
+        #00f2fe, #4facfe, #667eea, #00f2fe, #4facfe, #667eea);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: textShimmer 2s ease-in-out infinite;
+      font-weight: 500;
+    }
+
+    @keyframes textShimmer {
+      0%, 100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    .grok-dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .grok-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: grokPulse 1.4s ease-in-out infinite both;
+      background: linear-gradient(45deg, #00f2fe, #4facfe);
+      box-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+    }
+
+    .grok-dot:nth-child(1) { animation-delay: -0.32s; }
+    .grok-dot:nth-child(2) { animation-delay: -0.16s; }
+    .grok-dot:nth-child(3) { animation-delay: 0s; }
+
+    @keyframes grokPulse {
+      0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+        box-shadow: 0 0 4px rgba(0, 242, 254, 0.3);
+      }
+      40% {
+        transform: scale(1.2);
+        opacity: 1;
+        box-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+      }
+    }
+
+    .thinking::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 242, 254, 0.1), 
+        transparent);
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        left: -100%;
+      }
+      100% {
+        left: 100%;
+      }
+    }
+
+    .error {
+      color: #ff6b6b;
+      background: rgba(255, 107, 107, 0.12);
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 8px;
+      border-left: 2px solid #ff6b6b;
+      font-size: 14px;
+      max-width: 84%;
+      align-self: flex-start;
+    }
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 0;
+    }
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00f2fe;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .corner-footer {
+      position: fixed;
+      bottom: 8px;
+      font-size: 11px;
+      color: #777;
+      font-family: 'Manrope', sans-serif;
+      z-index: 20;
+    }
+    .corner-left {
+      left: 12px;
+    }
+    .corner-right {
+      right: 80px;
+      text-align: right;
+    }
+    .corner-footer a {
+      color: #4facfe;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .corner-footer a:hover {
+      text-decoration: underline;
+    }
+    .creator {
+      color: #ff4b2b;
+      font-weight: 600;
+    }
+    .quick-actions {
+      display: flex;
+      gap: 6px;
+      margin: 4px 0 0 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .quick-action-btn {
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: #00f2fe;
+      padding: 6px 10px;
+      min-height: 32px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quick-action-btn:hover:not(:disabled) {
+      background: rgba(0, 242, 254, 0.2);
+      transform: translateY(-1px);
+    }
+    .quick-action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .welcome-message {
+      max-width: 84% !important;
+      padding: 12px 16px !important;
+      text-align: center;
+      margin-bottom: 6px !important;
+      pointer-events: auto;
+      align-self: center;
+    }
+    .welcome-header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .welcome-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #00f2fe, #4facfe);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: block;
+      line-height: 1.3;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    .welcome-subtitle {
+      color: #bbb;
+      font-size: 14px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .medical-tooltip {
+        width: calc(100vw - 40px);
+        max-width: none;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+      }
+      .medical-tooltip.show {
+        transform: translateX(-50%) !important;
+      }
+      .message {
+        max-width: 92%;
+      }
+      .welcome-message {
+        max-width: 92% !important;
+        padding: 10px 14px !important;
+      }
+      .thinking {
+        max-width: 92%;
+      }
+      .error {
+        max-width: 92%;
+      }
+      .disclaimer-banner {
+        max-width: 92%;
+      }
+      .input-area {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      textarea {
+        min-width: auto;
+      }
+      .corner-right {
+        right: 12px;
+        text-align: right;
+      }
+      header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .logo-container {
+        flex-direction: row;
+        gap: 12px;
+      }
+      .pulse-icon {
+        width: 32px;
+        height: 32px;
+      }
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <div class="pulse-icon">
+          <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00f2fe">
+                  <animate attributeName="stop-color" values="#00f2fe;#4facfe;#00f2fe" dur="2s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="100%" stop-color="#4facfe">
+                  <animate attributeName="stop-color" values="#4facfe;#00f2fe;#4facfe" dur="2s" repeatCount="indefinite"/>
+                </stop>
+              </linearGradient>
+            </defs>
+            <path d="M0,50 C15,35 25,65 35,50 C45,35 50,25 60,50 C70,75 80,35 90,50 C95,55 100,50 100,50"
+                  fill="none"
+                  stroke="url(#pulseGradient)"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round">
+              <animate 
+                attributeName="stroke-dasharray"
+                values="0,200; 200,200"
+                dur="1.8s"
+                repeatCount="indefinite"
+                calcMode="spline"
+                keySplines="0.2 0.2 0.8 0.8"
+              />
+            </path>
+            <path d="M0,50 C15,35 25,65 35,50 C45,35 50,25 60,50 C70,75 80,35 90,50 C95,55 100,50 100,50"
+                  fill="none"
+                  stroke="url(#pulseGradient)"
+                  stroke-width="12"
+                  opacity="0.2"
+                  stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>DiagnoAI</h1>
+          <div class="subtitle">AI-Powered Medical Assistant</div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="disclaimer-banner">
+      DiagnoAI does not replace professional medical advice. Always consult a licensed healthcare provider.
+    </div>
+
+    <div class="chat-box" id="chatBox">
+      <div class="message ai-message welcome-message">
+        <div class="content">
+          <div class="welcome-header">
+            <div class="welcome-title">Here for Your Health</div>
+            <div class="welcome-subtitle">Feeling unwell or have a health question? Share your symptoms or concerns, and let's find the answers you need together.</div>
+          </div>
+          <div class="quick-actions">
+            <button class="quick-action-btn" onclick="quickAction('What are the common symptoms of diabetes?')">Diabetes Symptoms</button>
+            <button class="quick-action-btn" onclick="quickAction('How to manage high blood pressure?')">Hypertension Tips</button>
+            <button class="quick-action-btn" onclick="quickAction('What causes frequent headaches?')">Headache Causes</button>
+            <button class="quick-action-btn" onclick="quickAction('When should I see a doctor for a fever?')">Fever Guidance</button>
+          </div>
+        </div>
+        <div class="message-meta"><span>Now</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <textarea id="userInput" placeholder="Describe your symptoms or ask a medical question..."></textarea>
+    <button id="sendBtn" class="action-button" onclick="sendMessage()">
+      <span id="sendText">Send</span>
+    </button>
+    <button class="clear-button action-button" onclick="clearChat()">Clear</button>
+  </div>
+
+  <div class="corner-footer corner-right">
+    Created by <span class="creator">Bhupen</span>
+  </div>
+
+<script>
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas?.getContext('2d');
+    if (ctx) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+      
+      const particles = [];
+      class Particle {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.size = Math.random() * 2.5 + 0.8;
+          this.speedX = Math.random() * 1.6 - 0.8;
+          this.speedY = Math.random() * 1.6 - 0.8;
+          this.color = `hsl(${Math.random() * 30 + 180}, 70%, 65%)`;
+          this.life = 90;
+        }
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          this.life--;
+          this.size *= 0.98;
+        }
+        draw() {
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.life / 90;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      let mouseX = -100, mouseY = -100;
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.x;
+        mouseY = e.y;
+        for (let i = 0; i < 2; i++) {
+          particles.push(new Particle(mouseX, mouseY));
+        }
+      });
+      
+      function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+          particles[i].update();
+          particles[i].draw();
+          if (particles[i].life <= 0 || particles[i].size <= 0.1) {
+            particles.splice(i, 1);
+            i--;
+          }
+        }
+        requestAnimationFrame(animateParticles);
+      }
+      animateParticles();
+    }
+
+    const medicalTermCache = new Map();
+    let currentTooltip = null;
+    let hoverTimeout = null;
+
+    const SEVERITY_COLORS = {
+      'emergency': '#ff0000',
+      'serious': '#ff6b6b',
+      'moderate': '#feca57',
+      'mild': '#54a0ff',
+      'info': '#4ecdc4'
+    };
+
+    function createEnhancedTooltip() {
+      const tooltip = document.createElement('div');
+      tooltip.className = 'medical-tooltip';
+      tooltip.innerHTML = `
+        <div class="tooltip-header">
+          <h4 class="tooltip-title">
+            <span class="term-text"></span>
+            <span class="term-category"></span>
+          </h4>
+          <button class="tooltip-close">×</button>
+        </div>
+        <div class="tooltip-body">
+          <div class="tooltip-severity">
+            <span class="severity-indicator"></span>
+            <span class="severity-text"></span>
+          </div>
+          <div class="tooltip-definition"></div>
+        </div>
+        <div class="tooltip-footer">
+          <span class="tooltip-source"></span>
+          <a href="#" class="tooltip-learn-more" target="_blank">Learn More</a>
+        </div>
+      `;
+      document.body.appendChild(tooltip);
+      tooltip.querySelector('.tooltip-close').addEventListener('click', hideTooltip);
+      return tooltip;
+    }
+
+    const tooltip = createEnhancedTooltip();
+
+    async function fetchTermDefinition(term) {
+      if (medicalTermCache.has(term)) {
+        return medicalTermCache.get(term);
+      }
+      try {
+        const response = await fetch('/medical-term', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ term })
+        });
+        if (!response.ok) throw new Error('Failed to fetch definition');
+        const data = await response.json();
+        medicalTermCache.set(term, data);
+        return data;
+      } catch (error) {
+        console.warn(`Failed to fetch definition for "${term}"`, error);
+        return {
+          term,
+          definition: 'Definition not available at the moment.',
+          severity: 'info',
+          source: 'DiagnoAI Medical Dictionary',
+          found: false
+        };
+      }
+    }
+
+    function showTooltip(element, term) {
+      if (currentTooltip === element) return;
+      
+      currentTooltip = element;
+      const rect = element.getBoundingClientRect();
+      const tooltipHeight = 300;
+      
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      
+      let top, transformY;
+      tooltip.classList.remove('tooltip-below');
+      
+      if (spaceAbove > tooltipHeight + 20) {
+        top = rect.top;
+        transformY = '-100%';
+      } else if (spaceBelow > tooltipHeight + 20) {
+        top = rect.bottom;
+        transformY = '0';
+        tooltip.classList.add('tooltip-below');
+      } else {
+        top = rect.top;
+        transformY = '-100%';
+      }
+
+      const left = Math.max(150, Math.min(rect.left + rect.width / 2, window.innerWidth - 150));
+      
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+      tooltip.style.transform = `translateX(-50%) translateY(${transformY})`;
+      
+      tooltip.querySelector('.term-text').textContent = term.charAt(0).toUpperCase() + term.slice(1);
+      tooltip.querySelector('.term-category').textContent = 'Loading...';
+      tooltip.querySelector('.tooltip-definition').innerHTML = '<em>Loading definition...</em>';
+      tooltip.querySelector('.tooltip-source').textContent = '';
+      
+      tooltip.classList.add('show');
+
+      fetchTermDefinition(term).then(data => {
+        if (currentTooltip === element) {
+          const severity = data.severity || 'info';
+          tooltip.querySelector('.term-text').textContent = data.term;
+          tooltip.querySelector('.term-category').textContent = severity;
+          tooltip.querySelector('.tooltip-definition').textContent = data.definition;
+          tooltip.querySelector('.tooltip-source').textContent = `Source: ${data.source}`;
+          
+          const severityEl = tooltip.querySelector('.tooltip-severity');
+          severityEl.querySelector('.severity-indicator').className = `severity-indicator severity-${severity}`;
+          severityEl.querySelector('.severity-text').textContent = severity.charAt(0).toUpperCase() + severity.slice(1);
+          
+          const color = SEVERITY_COLORS[severity] || SEVERITY_COLORS.info;
+          tooltip.style.borderColor = color;
+          tooltip.querySelector('.term-category').style.background = color;
+          
+          const learnMoreLink = tooltip.querySelector('.tooltip-learn-more');
+          if (data.found && data.source.includes('MedlinePlus')) {
+            learnMoreLink.href = `https://medlineplus.gov/search/?query=${encodeURIComponent(term)}`;
+            learnMoreLink.style.display = 'inline';
+          } else {
+            learnMoreLink.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('show');
+      currentTooltip = null;
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
+      }
+    }
+
+    function processTextForMedicalTerms(element) {
+      if (element.classList.contains('medical-term-processed')) return;
+      
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+      const textNodes = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.parentElement?.classList.contains('medical-term')) continue;
+        textNodes.push(node);
+      }
+
+      textNodes.forEach(textNode => {
+        const text = textNode.textContent;
+        const medicalTerms = detectMedicalTerms(text);
+        if (medicalTerms.length > 0) {
+          const fragment = document.createDocumentFragment();
+          let lastIndex = 0;
+          medicalTerms.forEach(term => {
+            const index = text.toLowerCase().indexOf(term.clean, lastIndex);
+            if (index !== -1) {
+              if (index > lastIndex) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex, index)));
+              }
+              const termSpan = document.createElement('span');
+              termSpan.className = 'medical-term';
+              termSpan.textContent = text.slice(index, index + term.original.length);
+              termSpan.setAttribute('data-term', term.clean);
+              termSpan.setAttribute('title', `Click to learn about ${term.clean}`);
+              termSpan.addEventListener('mouseenter', () => {
+                hoverTimeout = setTimeout(() => showTooltip(termSpan, term.clean), 300);
+              });
+              termSpan.addEventListener('mouseleave', hideTooltip);
+              termSpan.addEventListener('click', (e) => {
+                e.preventDefault();
+                showTooltip(termSpan, term.clean);
+              });
+              fragment.appendChild(termSpan);
+              lastIndex = index + term.original.length;
+            }
+          });
+          if (lastIndex < text.length) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+          }
+          textNode.parentNode.replaceChild(fragment, textNode);
+        }
+      });
+      element.classList.add('medical-term-processed');
+    }
+
+    function detectMedicalTerms(text) {
+      const terms = [];
+      const words = text.split(/\b/);
+      const medicalTermsWithSeverity = {
+        'hypertension': 'serious', 'tachycardia': 'serious', 'bradycardia': 'serious', 'arrhythmia': 'serious',
+        'myocardial': 'serious', 'infarction': 'emergency', 'embolism': 'emergency', 'thrombosis': 'serious',
+        'aneurysm': 'emergency', 'stenosis': 'moderate', 'diabetes': 'serious', 'hyperglycemia': 'serious',
+        'hypoglycemia': 'serious', 'ketoacidosis': 'emergency', 'osteoporosis': 'moderate', 'arthritis': 'moderate',
+        'osteomyelitis': 'serious', 'fibromyalgia': 'moderate', 'pneumonia': 'serious', 'bronchitis': 'moderate',
+        'emphysema': 'serious', 'asthma': 'moderate', 'tuberculosis': 'serious', 'hepatitis': 'serious',
+        'cirrhosis': 'serious', 'pancreatitis': 'serious', 'cholecystitis': 'serious', 'nephritis': 'serious',
+        'migraine': 'moderate', 'epilepsy': 'serious', 'stroke': 'emergency', 'pulmonary': 'serious',
+        'gastroenteritis': 'moderate', 'fever': 'mild', 'fatigue': 'mild', 'nausea': 'mild', 'headache': 'mild',
+        'paracetamol': 'info', 'ibuprofen': 'info', 'antibiotic': 'info', 'analgesic': 'info'
+      };
+      
+      for (let i = 0; i < words.length; i++) {
+        const cleanWord = words[i].replace(/[^\w]/g, '').toLowerCase();
+        if (cleanWord.length >= 4 && medicalTermsWithSeverity[cleanWord]) {
+          terms.push({ 
+            original: words[i], 
+            clean: cleanWord,
+            severity: medicalTermsWithSeverity[cleanWord]
+          });
+        }
+      }
+      return terms;
+    }
+
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const sendText = document.getElementById('sendText');
+
+    let activeRequestController = null;
+    let currentRequestId = null;
+    let currentThinkingElement = null;
+
+    function generateRequestId() {
+        return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    async function cancelActiveRequest() {
+        if (activeRequestController) {
+            activeRequestController.abort();
+            activeRequestController = null;
+        }
+        
+        if (currentRequestId) {
+            try {
+                await fetch('/cancel-query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: currentRequestId })
+                });
+            } catch (error) {
+                console.log('Cancel request failed:', error);
+            }
+            currentRequestId = null;
+        }
+        
+        if (currentThinkingElement) {
+            currentThinkingElement.remove();
+            currentThinkingElement = null;
+        }
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatAnswer(text) {
+      let html = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n{2,}/g, '</p><p>');
+      html = `<p>${html}</p>`;
+      html = html
+        .replace(/^(\d+)\.\s+(.*$)/gm, '<li>$2</li>')
+        .replace(/(<li>.*<\/li>)/gs, '<ol>$1</ol>')
+        .replace(/^[-*]\s+(.*$)/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+      return html;
+    }
+
+    function addMessage(text, sender, sources = null) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender}-message`;
+      if (sender === 'ai') {
+        msgDiv.classList.add('new');
+        setTimeout(() => msgDiv.classList.remove('new'), 1600);
+      }
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'content';
+      if (sender === 'ai') {
+        contentDiv.innerHTML = formatAnswer(text);
+      } else {
+        contentDiv.textContent = text;
+      }
+      msgDiv.appendChild(contentDiv);
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'message-meta';
+      const timeSpan = document.createElement('span');
+      timeSpan.textContent = formatTime(new Date());
+
+      if (sender === 'ai') {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.textContent = 'Copy';
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(text).then(() => {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 1800);
+          });
+        };
+        metaDiv.appendChild(copyBtn);
+      }
+
+      metaDiv.prepend(timeSpan);
+      msgDiv.appendChild(metaDiv);
+      
+      chatBox.appendChild(msgDiv);
+
+      setTimeout(() => {
+        processTextForMedicalTerms(msgDiv);
+        const medicalTerms = msgDiv.querySelectorAll('.medical-term');
+        medicalTerms.forEach(term => {
+          const termText = term.getAttribute('data-term');
+          const termData = detectMedicalTerms(termText);
+          if (termData.length > 0) {
+            term.classList.add(termData[0].severity || 'info');
+          }
+        });
+        document.querySelectorAll('.quick-action-btn').forEach(btn => btn.disabled = false);
+      }, 100);
+      
+      requestAnimationFrame(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    }
+
+    function quickAction(query) {
+      document.querySelectorAll('.quick-action-btn').forEach(btn => btn.disabled = true);
+      userInput.value = query;
+      sendMessage();
+    }
+
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function clearChat() {
+      cancelActiveRequest();
+      
+      chatBox.innerHTML = '';
+      const welcomeMsg = document.createElement('div');
+      welcomeMsg.className = 'message ai-message welcome-message';
+      welcomeMsg.innerHTML = `
+        <div class="content">
+          <div class="welcome-header">
+            <div class="welcome-title">Here for Your Health</div>
+            <div class="welcome-subtitle">Feeling unwell or have a health question? Share your symptoms or concerns, and let's find the answers you need together.</div>
+          </div>
+          <div class="quick-actions">
+            <button class="quick-action-btn" onclick="quickAction('What are the common symptoms of diabetes?')">Diabetes Symptoms</button>
+            <button class="quick-action-btn" onclick="quickAction('How to manage high blood pressure?')">Hypertension Tips</button>
+            <button class="quick-action-btn" onclick="quickAction('What causes frequent headaches?')">Headache Causes</button>
+            <button class="quick-action-btn" onclick="quickAction('When should I see a doctor for a fever?')">Fever Guidance</button>
+          </div>
+        </div>
+        <div class="message-meta">
+          <span>Now</span>
+        </div>
+      `;
+      chatBox.appendChild(welcomeMsg);
+      medicalTermCache.clear();
+      
+      sendBtn.disabled = false;
+      sendText.textContent = 'Send';
+      
+      setTimeout(() => {
+        document.querySelectorAll('.quick-action-btn').forEach(btn => btn.disabled = false);
+      }, 100);
+    }
+
+    async function sendMessage() {
+      const query = userInput.value.trim();
+      if (!query) return;
+
+      await cancelActiveRequest();
+
+      activeRequestController = new AbortController();
+      currentRequestId = generateRequestId();
+
+      addMessage(query, 'user');
+      userInput.value = '';
+      userInput.style.height = '54px';
+      sendBtn.disabled = true;
+      sendText.innerHTML = '<div class="spinner"></div>';
+
+      const thinkingEl = document.createElement('div');
+      thinkingEl.className = 'thinking';
+      thinkingEl.innerHTML = `
+        <div class="thinking-content">
+          <div class="grok-dots">
+            <div class="grok-dot"></div>
+            <div class="grok-dot"></div>
+            <div class="grok-dot"></div>
+          </div>
+          <div class="thinking-text">Analyzing your query with medical knowledge</div>
+        </div>
+      `;
+      chatBox.appendChild(thinkingEl);
+      currentThinkingElement = thinkingEl;
+      
+      requestAnimationFrame(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      try {
+        const response = await fetch('/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query,
+            n_results: 5,
+            temperature: 0.1,
+            max_tokens: 1000,
+            request_id: currentRequestId
+          }),
+          signal: activeRequestController.signal
+        });
+
+        if (!response.ok) {
+          if (response.status === 499) {
+            console.log('Request was cancelled by user');
+            return;
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        thinkingEl.remove();
+        currentThinkingElement = null;
+
+        addMessage(
+          data.answer?.trim() || 'I could not generate a response. Please consult a healthcare professional.',
+          'ai',
+          data.sources || []
+        );
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          thinkingEl.remove();
+          currentThinkingElement = null;
+          const errorEl = document.createElement('div');
+          errorEl.className = 'error';
+          errorEl.textContent = `Error: ${error.message || 'Failed to get response'}`;
+          chatBox.appendChild(errorEl);
+          requestAnimationFrame(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+          });
+        } else {
+          thinkingEl.remove();
+          currentThinkingElement = null;
+        }
+        document.querySelectorAll('.quick-action-btn').forEach(btn => btn.disabled = false);
+      } finally {
+        if (!activeRequestController?.signal.aborted) {
+          sendBtn.disabled = false;
+          sendText.textContent = 'Send';
+          activeRequestController = null;
+          currentRequestId = null;
+        }
+      }
+    }
+
+    window.addEventListener('beforeunload', () => {
+      cancelActiveRequest();
+    });
+
+    userInput.addEventListener('input', () => {
+      userInput.style.height = 'auto';
+      userInput.style.height = Math.min(userInput.scrollHeight, 110) + 'px';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('medical-term') && !e.target.closest('.medical-tooltip')) {
+        hideTooltip();
+      }
+    });
+
+    window.addEventListener('scroll', hideTooltip);
+
+    setTimeout(() => {
+      const initialMessages = chatBox.querySelectorAll('.ai-message, .user-message');
+      initialMessages.forEach(msg => {
+        processTextForMedicalTerms(msg);
+        const medicalTerms = msg.querySelectorAll('.medical-term');
+        medicalTerms.forEach(term => {
+          const termText = term.getAttribute('data-term');
+          if (termText) {
+            const termData = detectMedicalTerms(termText);
+            if (termData.length > 0) {
+              term.classList.add(termData[0].severity || 'info');
+            }
+          }
+        });
+      });
+    }, 1000);
+
+    userInput.focus();
+  </script>
+</body>
+</html>
