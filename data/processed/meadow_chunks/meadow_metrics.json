@@ -1,0 +1,28 @@
+{
+  "finalized_date": "2025-10-09T14:40:04.056363",
+  "processing_method": "forceful_splitting_openai",
+  "total_chunks": 11613,
+  "safe_chunks_count": 11613,
+  "oversized_chunks_count": 0,
+  "chunk_size_analysis": {
+    "small_<2000_tokens": 11603,
+    "medium_2000_6000_tokens": 9,
+    "large_6000_8000_tokens": 1,
+    "oversized_8000_plus_tokens": 0,
+    "avg_tokens": 159.61040213553727,
+    "max_tokens": 6385.6
+  },
+  "quality_analysis": {
+    "excellent_80_100": 4531,
+    "good_60_79": 3146,
+    "fair_40_59": 2343,
+    "poor_0_39": 1593,
+    "avg_quality": 65.55756479807113
+  },
+  "token_safety": {
+    "max_tokens": 6385.6,
+    "openai_safe": true,
+    "safe_chunks_percentage": "100.0%",
+    "recommendation": "✅ Safe for OpenAI"
+  }
+}
