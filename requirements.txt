@@ -1,28 +1,30 @@
-# Data Processing
-lxml==4.9.0
-beautifulsoup4==4.12.0
-html5lib==1.1
-
-# Vector Database & Embeddings
+# Core Dependencies 
+openai==2.2.0
 chromadb==1.1.1
-sentence-transformers==2.2.0
+sentence-transformers==5.1.1
 
-# OpenAI Integration (for embeddings)
-openai==1.0.0
-
-# Local LLM (Ollama)
-ollama==0.1.7
-
-# API & Web Framework
+# API & Processing
 fastapi==0.118.0
 uvicorn==0.37.0
-pydantic==2.11.0
+pydantic==2.11.10
+pydantic-settings==2.11.0
+
+# Data Processing  
+lxml==6.0.2
+beautifulsoup4==4.14.2
 
 # Utilities
-python-dotenv==1.1.0
+dotenv-python==0.0.1
 requests==2.32.5
 numpy==2.3.3
-tqdm==4.65.0
+tqdm==4.67.1
 
-# Testing
-pytest==8.4.2
+# Local LLM
+ollama==0.6.0
+
+torch>=2.0.0
+transformers>=4.30.0
+accelerate>=0.20.0
+bitsandbytes>=0.40.0  
+aiohttp
+datasets==4.1.1
