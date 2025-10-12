@@ -1,0 +1,22 @@
+{
+  "generated_date": "2025-10-09T11:59:47.978880",
+  "pipeline_version": "context_preserving_v1",
+  "dataset_overview": {
+    "total_topics": 1017,
+    "total_chunks": 1022,
+    "chunks_per_topic": 1.0,
+    "avg_chunk_size_words": 362.7,
+    "total_words": 370680
+  },
+  "chunk_size_analysis": {
+    "small_chunks_<100": 61,
+    "medium_chunks_100_300": 581,
+    "large_chunks_>=300": 380,
+    "size_distribution": "6.0% small, 56.8% medium, 37.2% large"
+  },
+  "context_preservation_score": {
+    "avg_chunk_size": 362.7,
+    "recommendation": "Excellent",
+    "chunks_per_topic_score": "Optimal"
+  }
+}
