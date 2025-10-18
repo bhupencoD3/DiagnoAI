@@ -2,8 +2,13 @@
 set -e
 
 echo "🚀 Deploying DiagnoAI..."
+echo "🔧 Using KUBECONFIG: $KUBECONFIG"
 
-# Apply base resources with validation disabled (temporary fix)
+# Test connection first
+echo "🔌 Testing Kubernetes connection..."
+kubectl get nodes --request-timeout=30s
+
+# Apply base resources with validation disabled
 kubectl apply -f deployment/k8s/namespace.yaml --validate=false
 kubectl apply -f deployment/k8s/ollama-pvc.yaml --validate=false
 kubectl apply -f deployment/k8s/vector-store-pvc.yaml --validate=false

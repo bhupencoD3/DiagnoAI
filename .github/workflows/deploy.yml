@@ -14,9 +14,13 @@ jobs:
 
     - name: Configure kubeconfig
       run: |
-        echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig  # ← CHANGED THIS LINE
+        echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig
+        export KUBECONFIG=$(pwd)/kubeconfig  # ← ADD THIS LINE
+        echo "🔍 Kubeconfig server:"
+        kubectl config view --minify | grep server
 
     - name: Deploy to k3s
       run: |
+        export KUBECONFIG=$(pwd)/kubeconfig  # ← ADD THIS LINE TOO
         chmod +x deployment/scripts/deploy.sh
         deployment/scripts/deploy.sh
