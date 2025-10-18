@@ -1,0 +1,41 @@
+name: Start/Stop DiagnoAI Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Start or Stop the cluster'
+        required: true
+        default: 'start'
+        type: choice
+        options:
+        - start
+        - stop
+
+jobs:
+  cluster-control:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+
+    - name: Start Cluster
+      if: inputs.action == 'start'
+      run: |
+        chmod +x deployment/scripts/start-cluster.sh
+        deployment/scripts/start-cluster.sh
+
+    - name: Stop Cluster
+      if: inputs.action == 'stop'
+      run: |
+        chmod +x deployment/scripts/stop-cluster.sh
+        deployment/scripts/stop-cluster.sh
+
+    - name: Get Cluster Status
+      run: |
+        chmod +x deployment/scripts/status.sh
+        deployment/scripts/status.sh
