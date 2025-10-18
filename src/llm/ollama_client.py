@@ -111,7 +111,7 @@ Answer:"""
                             "stop": ["</s>", "[INST]", "[/INST]"]
                         }
                     },
-                    timeout=aiohttp.ClientTimeout(total=300)
+                    timeout=aiohttp.ClientTimeout(total=60)
                 ) as response:
                     
                     if response.status != 200:
