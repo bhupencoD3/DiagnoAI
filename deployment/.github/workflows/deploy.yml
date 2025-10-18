@@ -1,0 +1,22 @@
+name: Deploy DiagnoAI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+
+    - name: Deploy to k3s
+      run: |
+        chmod +x deployment/scripts/deploy.sh
+        deployment/scripts/deploy.sh
