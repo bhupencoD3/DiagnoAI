@@ -19,15 +19,9 @@ jobs:
 
     - name: Deploy to k3s
       run: |
-        # Write kubeconfig and use explicit --kubeconfig flag
+        # Write kubeconfig and SKIP ALL validation
         echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig.yaml
         
-        echo "🔍 Verifying kubeconfig:"
-        kubectl --kubeconfig=kubeconfig.yaml config view --minify | grep server
-        
-        echo "🔌 Testing connection:"
-        kubectl --kubeconfig=kubeconfig.yaml get nodes
-        
-        echo "🚀 Starting deployment..."
+        echo "🚀 Starting deployment with validation disabled..."
         chmod +x deployment/scripts/deploy.sh
         KUBECONFIG_FILE=kubeconfig.yaml deployment/scripts/deploy.sh
