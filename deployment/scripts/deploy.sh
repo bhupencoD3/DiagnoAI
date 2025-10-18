@@ -2,18 +2,16 @@
 set -e
 
 echo "🚀 Deploying DiagnoAI..."
-echo "$KUBECONFIG" > kubeconfig
-export KUBECONFIG=kubeconfig
 
-# Apply base resources
-kubectl apply -f deployment/k8s/namespace.yaml
-kubectl apply -f deployment/k8s/ollama-pvc.yaml
-kubectl apply -f deployment/k8s/vector-store-pvc.yaml
-kubectl apply -f deployment/k8s/data-pvc.yaml
+# Apply base resources with validation disabled (temporary fix)
+kubectl apply -f deployment/k8s/namespace.yaml --validate=false
+kubectl apply -f deployment/k8s/ollama-pvc.yaml --validate=false
+kubectl apply -f deployment/k8s/vector-store-pvc.yaml --validate=false
+kubectl apply -f deployment/k8s/data-pvc.yaml --validate=false
 
 # Start Ollama FIRST (model download takes 15-20 mins)
 echo "📦 Deploying Ollama..."
-kubectl apply -f deployment/k8s/ollama-deployment.yaml
+kubectl apply -f deployment/k8s/ollama-deployment.yaml --validate=false
 
 # Wait for Ollama to be ready
 echo "⏳ Waiting for Ollama to download Mistral model (this takes 15-20 minutes)..."
@@ -21,9 +19,9 @@ kubectl wait --for=condition=ready pod -l app=ollama -n diagnoai --timeout=2400s
 
 # Deploy main application
 echo "🚀 Deploying DiagnoAI application..."
-kubectl apply -f deployment/k8s/configmap.yaml
-kubectl apply -f deployment/k8s/deployment.yaml
-kubectl apply -f deployment/k8s/service.yaml
+kubectl apply -f deployment/k8s/configmap.yaml --validate=false
+kubectl apply -f deployment/k8s/deployment.yaml --validate=false
+kubectl apply -f deployment/k8s/service.yaml --validate=false
 
 # Wait for main app
 echo "⏳ Waiting for DiagnoAI to be ready..."

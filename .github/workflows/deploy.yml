@@ -14,7 +14,7 @@ jobs:
 
     - name: Configure kubeconfig
       run: |
-        echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+        echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig  # ← CHANGED THIS LINE
 
     - name: Deploy to k3s
       run: |
