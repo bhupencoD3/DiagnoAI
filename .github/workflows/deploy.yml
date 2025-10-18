@@ -12,15 +12,22 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Configure kubeconfig
-      run: |
-        echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig
-        export KUBECONFIG=$(pwd)/kubeconfig  # ← ADD THIS LINE
-        echo "🔍 Kubeconfig server:"
-        kubectl config view --minify | grep server
+    - name: Set up Kubernetes
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
 
     - name: Deploy to k3s
       run: |
-        export KUBECONFIG=$(pwd)/kubeconfig  # ← ADD THIS LINE TOO
+        # Write kubeconfig and use explicit --kubeconfig flag
+        echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig.yaml
+        
+        echo "🔍 Verifying kubeconfig:"
+        kubectl --kubeconfig=kubeconfig.yaml config view --minify | grep server
+        
+        echo "🔌 Testing connection:"
+        kubectl --kubeconfig=kubeconfig.yaml get nodes
+        
+        echo "🚀 Starting deployment..."
         chmod +x deployment/scripts/deploy.sh
-        deployment/scripts/deploy.sh
+        KUBECONFIG_FILE=kubeconfig.yaml deployment/scripts/deploy.sh
