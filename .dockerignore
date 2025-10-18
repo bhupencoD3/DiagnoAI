@@ -1,0 +1,17 @@
+.git
+.github
+deployment/   
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pytest_cache
+.coverage
+.mypy_cache
+.dockerignore
+README.md
+screenshots/
+logs/*.log
+models/embeddings/*
