@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diagnoai-config
+  namespace: diagnoai
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  OLLAMA_HOST: "ollama-service"
+  OLLAMA_PORT: "11434"
+  VECTOR_STORE_PATH: "/app/data/vector_store"
+  OLLAMA_MODEL: "mistral:7b-instruct"
