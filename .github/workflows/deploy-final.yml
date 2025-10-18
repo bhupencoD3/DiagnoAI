@@ -35,3 +35,6 @@ jobs:
         
         echo "✅ Deployment completed!"
         kubectl --kubeconfig=/tmp/kubeconfig-final.yaml get all -n diagnoai
+        
+        EXTERNAL_IP=$(kubectl --kubeconfig=/tmp/kubeconfig-final.yaml get svc diagnoai-service -n diagnoai -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || echo "Pending")
+        echo "🌐 Your DiagnoAI: http://$EXTERNAL_IP:8000"
