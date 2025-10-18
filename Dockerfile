@@ -14,9 +14,11 @@ RUN pip install --no-cache-dir \
     torch==2.5.0 --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -r requirements.txt
 
+# Copy EVERYTHING - much simpler!
 COPY . .
 
-RUN mkdir -p logs  static
+# Create necessary directories (in case they don't exist)
+RUN mkdir -p logs data/vector_store data/processed
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

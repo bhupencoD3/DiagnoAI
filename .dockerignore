@@ -15,6 +15,5 @@ README.md
 screenshots/
 logs/*.log
 models/embeddings/*
-data/vector_store
 data/raw
 .jsonl
