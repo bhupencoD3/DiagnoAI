@@ -209,4 +209,8 @@ __marimo__/
 .env*
 mvenv
 mplus*
-*.zip
+*.zipdata/vector_store/
+data/raw/
+*.bin
+*.sqlite3
+*.jsonl
