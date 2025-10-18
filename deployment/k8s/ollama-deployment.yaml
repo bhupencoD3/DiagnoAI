@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: diagnoai
+  labels:
+    app: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: ollama/ollama:latest
+        ports:
+        - containerPort: 11434
+        volumeMounts:
+        - name: ollama-models
+          mountPath: /root/.ollama
+        resources:
+          requests:
+            memory: "6Gi"
+            cpu: "2000m"
+          limits:
+            memory: "12Gi"
+            cpu: "4000m"
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # Start Ollama server
+            ollama serve &
+            
+            # Wait for server to start
+            sleep 10
+            
+            # Check if model already exists
+            if ollama list | grep -q "mistral:7b-instruct"; then
+              echo "✅ Mistral model already exists"
+            else
+              # Pull Mistral model
+              echo "📥 Pulling Mistral 7B model..."
+              ollama pull mistral:7b-instruct
+              echo "✅ Mistral model downloaded"
+            fi
+            
+            # Keep the container running
+            wait
+        startupProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          failureThreshold: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          initialDelaySeconds: 20
+          periodSeconds: 10
+      volumes:
+      - name: ollama-models
+        persistentVolumeClaim:
+          claimName: ollama-models-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: diagnoai
+  labels:
+    app: ollama
+spec:
+  selector:
+    app: ollama
+  ports:
+  - port: 11434
+    targetPort: 11434
