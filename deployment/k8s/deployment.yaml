@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diagnoai
+  namespace: diagnoai
+  labels:
+    app: diagnoai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: diagnoai
+  template:
+    metadata:
+      labels:
+        app: diagnoai
+    spec:
+      containers:
+      - name: diagnoai
+        image: bhupencod3/diagnoai:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: diagnoai-config
+        env:
+        - name: OLLAMA_MODEL
+          value: "mistral:7b-instruct"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "1000m"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          failureThreshold: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        volumeMounts:
+        - name: vector-store-volume
+          mountPath: /app/data/vector_store
+        - name: models-volume
+          mountPath: /app/models
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: data-volume
+          mountPath: /app/data
+      volumes:
+      - name: vector-store-volume
+        persistentVolumeClaim:
+          claimName: vector-store-pvc
+      - name: models-volume
+        persistentVolumeClaim:
+          claimName: ollama-models-pvc
+      - name: logs-volume
+        emptyDir: {}
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: data-pvc
