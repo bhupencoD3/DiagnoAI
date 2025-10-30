@@ -1,0 +1,37 @@
+name: Deploy DiagnoAI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up kubeconfig
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+        chmod 600 ~/.kube/config
+        
+    - name: Test cluster connection
+      run: |
+        kubectl cluster-info
+        kubectl get nodes
+        
+    - name: Deploy DiagnoAI
+      run: |
+        chmod +x deployment/scripts/deploy.sh
+        ./deployment/scripts/deploy.sh
+        
+    - name: Verify deployment
+      run: |
+        echo "📊 Final status:"
+        kubectl get all -n diagnoai
+        echo ""
+        echo "🌐 Your application will be available at:"
+        kubectl get svc diagnoai-service -n diagnoai
