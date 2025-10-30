@@ -1,8 +1,7 @@
 #!/bin/bash
-
 set -e
 
-echo "📊 DiagnoAI Cluster Status"
+echo "📊 DiagnoAI Cluster Status (Grok API)"
 echo "$KUBECONFIG" > kubeconfig
 export KUBECONFIG=kubeconfig
 
@@ -22,7 +21,10 @@ echo ""
 echo "📈 Deployments:"
 kubectl get deployments -n diagnoai
 
-# Check app health
+echo ""
+echo "📊 HPA Status:"
+kubectl get hpa -n diagnoai
+
 if kubectl get deployment diagnoai -n diagnoai &>/dev/null; then
     echo ""
     echo "🏥 Application Health:"
