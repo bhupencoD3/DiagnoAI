@@ -60,11 +60,6 @@
       align-items: center;
       gap: 12px;
     }
-    .pulse-icon {
-      width: 36px;
-      height: 36px;
-      flex-shrink: 0;
-    }
     .logo-text {
       display: flex;
       flex-direction: column;
@@ -189,6 +184,53 @@
     .content p {
       margin: 10px 0;
     }
+    
+    /* Improved formatting for headers and lists */
+    .ai-message h3 {
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 24px 0 12px 0;
+      padding: 0;
+      border: none;
+      text-shadow: none;
+      line-height: 1.3;
+    }
+    
+    .ai-message h3:first-child {
+      margin-top: 0;
+    }
+    
+    .ai-message ul {
+      margin: 8px 0 16px 0;
+      padding-left: 20px;
+    }
+    
+    .ai-message li {
+      margin: 6px 0;
+      line-height: 1.4;
+      color: #cccccc;
+      font-size: 14px;
+      position: relative;
+      padding-left: 8px;
+    }
+    
+    .ai-message li::before {
+      content: "•";
+      color: #888888;
+      font-weight: normal;
+      position: absolute;
+      left: -15px;
+      font-size: 14px;
+    }
+    
+    .ai-message p {
+      margin: 8px 0;
+      line-height: 1.5;
+      color: #cccccc;
+      font-size: 14px;
+    }
+
     .message-meta {
       font-size: 10px;
       color: #777;
@@ -720,14 +762,35 @@
         flex-direction: row;
         gap: 12px;
       }
-      .pulse-icon {
-        width: 32px;
-        height: 32px;
-      }
       h1 {
         font-size: 28px;
       }
     }
+        /* Medical Disclaimer Styling */
+    .ai-message .medical-disclaimer {
+      background: rgba(255, 107, 107, 0.1);
+      border-left: 3px solid #ff6b6b;
+      padding: 12px 16px;
+      margin: 20px 0 0 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: #ffafaf;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .ai-message .medical-disclaimer em {
+      color: #ffafaf;
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    /* Ensure regular italic text is styled differently */
+    .ai-message em:not(.medical-disclaimer em) {
+      color: #cccccc;
+      font-style: italic;
+    }
+
   </style>
 </head>
 <body>
@@ -735,41 +798,7 @@
   <div class="container">
     <header>
       <div class="logo-container">
-        <div class="pulse-icon">
-          <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#00f2fe">
-                  <animate attributeName="stop-color" values="#00f2fe;#4facfe;#00f2fe" dur="2s" repeatCount="indefinite"/>
-                </stop>
-                <stop offset="100%" stop-color="#4facfe">
-                  <animate attributeName="stop-color" values="#4facfe;#00f2fe;#4facfe" dur="2s" repeatCount="indefinite"/>
-                </stop>
-              </linearGradient>
-            </defs>
-            <path d="M0,50 C15,35 25,65 35,50 C45,35 50,25 60,50 C70,75 80,35 90,50 C95,55 100,50 100,50"
-                  fill="none"
-                  stroke="url(#pulseGradient)"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round">
-              <animate 
-                attributeName="stroke-dasharray"
-                values="0,200; 200,200"
-                dur="1.8s"
-                repeatCount="indefinite"
-                calcMode="spline"
-                keySplines="0.2 0.2 0.8 0.8"
-              />
-            </path>
-            <path d="M0,50 C15,35 25,65 35,50 C45,35 50,25 60,50 C70,75 80,35 90,50 C95,55 100,50 100,50"
-                  fill="none"
-                  stroke="url(#pulseGradient)"
-                  stroke-width="12"
-                  opacity="0.2"
-                  stroke-linecap="round"/>
-          </svg>
-        </div>
+        <!-- Removed the pulse icon SVG -->
         <div class="logo-text">
           <h1>DiagnoAI</h1>
           <div class="subtitle">AI-Powered Medical Assistant</div>
@@ -1043,14 +1072,24 @@
               termSpan.textContent = text.slice(index, index + term.original.length);
               termSpan.setAttribute('data-term', term.clean);
               termSpan.setAttribute('title', `Click to learn about ${term.clean}`);
-              termSpan.addEventListener('mouseenter', () => {
+              
+              // Fixed hover event handling with proper event propagation
+              termSpan.addEventListener('mouseenter', (e) => {
+                e.stopPropagation();
                 hoverTimeout = setTimeout(() => showTooltip(termSpan, term.clean), 300);
               });
-              termSpan.addEventListener('mouseleave', hideTooltip);
+              
+              termSpan.addEventListener('mouseleave', (e) => {
+                e.stopPropagation();
+                hideTooltip();
+              });
+              
               termSpan.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 showTooltip(termSpan, term.clean);
               });
+              
               fragment.appendChild(termSpan);
               lastIndex = index + term.original.length;
             }
@@ -1135,18 +1174,73 @@
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    function formatAnswer(text) {
-      let html = text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n{2,}/g, '</p><p>');
-      html = `<p>${html}</p>`;
-      html = html
-        .replace(/^(\d+)\.\s+(.*$)/gm, '<li>$2</li>')
-        .replace(/(<li>.*<\/li>)/gs, '<ol>$1</ol>')
-        .replace(/^[-*]\s+(.*$)/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
-      return html;
+   function formatAnswer(text) {
+  // Clean up the text first
+  let cleanedText = text
+    .replace(/^•\s*\*\*/g, '**')
+    .replace(/\*\*([^*]+)\*\*/g, '\n**$1**\n')
+    .replace(/^\s*[\*\-]\s+/gm, '• ')
+    .trim();
+
+  // Remove medical disclaimer patterns and handle separately
+  let mainText = cleanedText;
+  
+  // Replace all medical disclaimer variations with a placeholder
+  mainText = mainText.replace(/\*\*Medical Disclaimer\*\*\s*\n\*([^*]+)\*/g, '');
+  mainText = mainText.replace(/\*Medical Disclaimer:[\s\S]*?\*/g, '');
+  
+  // Extract the actual disclaimer text
+  let disclaimerText = '';
+  const singleLineMatch = text.match(/\*Medical Disclaimer:([^*]+)\*/);
+  if (singleLineMatch) {
+    disclaimerText = singleLineMatch[1].trim();
+  } else {
+    const twoLineMatch = text.match(/\*\*Medical Disclaimer\*\*\s*\n\*([^*]+)\*/);
+    if (twoLineMatch) {
+      disclaimerText = twoLineMatch[1].trim();
     }
+  }
+
+  // Process main text (same as before)
+  const lines = mainText.split('\n');
+  let html = '';
+  let inList = false;
+
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+
+    if (line.match(/^\*\*[^*]+\*\*$/)) {
+      if (inList) html += '</ul>';
+      const headerText = line.replace(/\*\*/g, '').trim();
+      html += `<h3>${headerText}</h3>`;
+      inList = false;
+    }
+    else if (line.startsWith('•')) {
+      if (!inList) {
+        html += '<ul>';
+        inList = true;
+      }
+      html += `<li>${line.substring(1).trim()}</li>`;
+    }
+    else {
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
+      html += `<p>${line}</p>`;
+    }
+  });
+
+  if (inList) html += '</ul>';
+
+  // Add medical disclaimer if found
+  if (disclaimerText) {
+    html += `<div class="medical-disclaimer">${disclaimerText}</div>`;
+  }
+
+  return html;
+}
 
     function addMessage(text, sender, sources = null) {
       const msgDiv = document.createElement('div');
@@ -1187,6 +1281,7 @@
       
       chatBox.appendChild(msgDiv);
 
+      // Process medical terms immediately after adding message
       setTimeout(() => {
         processTextForMedicalTerms(msgDiv);
         const medicalTerms = msgDiv.querySelectorAll('.medical-term');
@@ -1198,7 +1293,7 @@
           }
         });
         document.querySelectorAll('.quick-action-btn').forEach(btn => btn.disabled = false);
-      }, 100);
+      }, 50);
       
       requestAnimationFrame(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -1360,7 +1455,8 @@
 
     window.addEventListener('scroll', hideTooltip);
 
-    setTimeout(() => {
+    // Process initial messages immediately on page load
+    document.addEventListener('DOMContentLoaded', () => {
       const initialMessages = chatBox.querySelectorAll('.ai-message, .user-message');
       initialMessages.forEach(msg => {
         processTextForMedicalTerms(msg);
@@ -1375,7 +1471,7 @@
           }
         });
       });
-    }, 1000);
+    });
 
     userInput.focus();
   </script>
