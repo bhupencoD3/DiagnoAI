@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+STATIC_PATH = PROJECT_ROOT / "static"
+
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
@@ -8,7 +16,6 @@ from typing import List, Optional, Dict, Any
 import logging
 import uvicorn
 import os
-from pathlib import Path
 import time
 import requests
 import asyncio
@@ -16,21 +23,17 @@ import uuid
 
 from src.rag.retriever import MedicalRetriever
 from src.rag.vector_store import MedicalVectorStore
-from src.llm.ollama_client import OllamaClient
+from src.llm.grok_client import GrokClient
 from src.utils.config import settings
 from src.utils.logger import setup_logging
-
 from data.medical_dictionary import MEDICAL_TERMS_DICTIONARY, CATEGORY_COLORS
-
-PROJECT_ROOT = Path(__file__).parent.parent  
-STATIC_PATH = PROJECT_ROOT / "static"
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="DiagnoAI Medical Assistant",
-    description="AI-powered medical diagnosis assistant using local LLM",
+    description="AI-powered medical diagnosis assistant using Grok API",
     version="1.0.0"
 )
 
@@ -80,7 +83,7 @@ class HealthResponse(BaseModel):
     vector_store: Dict[str, Any]
     llm_status: str
     model_info: Dict[str, Any]
-    ollama_endpoint: str
+    grok_endpoint: str
 
 class CancelRequest(BaseModel):
     request_id: str
@@ -189,17 +192,17 @@ async def startup_event():
         total = vector_store.get_collection_stats()
         logger.info(f"Total documents in vector store: {total}")
         
-        logger.info("Initializing Ollama client...")
-        llm_client = OllamaClient()
+        logger.info("Initializing Grok client...")
+        llm_client = GrokClient()
         
-        logger.info("Testing Ollama connection...")
-        ollama_healthy = await llm_client.health_check()
+        logger.info("Testing Grok connection...")
+        llm_healthy = await llm_client.health_check()
         
-        if ollama_healthy:
-            logger.info("Ollama connection successful")
+        if llm_healthy:
+            logger.info("Grok API connection successful")
         else:
-            logger.error("Ollama connection failed")
-            raise ConnectionError("Cannot connect to Ollama service")
+            logger.error("Grok API connection failed")
+            raise ConnectionError("Cannot connect to Grok API service")
         
         logger.info("All services initialized successfully")
         
@@ -365,7 +368,7 @@ async def health_check():
             vector_store=vector_stats,
             llm_status=llm_status,
             model_info=model_info,
-            ollama_endpoint=f"{settings.OLLAMA_HOST}:{settings.OLLAMA_PORT}"
+            grok_endpoint="api.groq.com"
         )
         
     except Exception as e:
@@ -375,8 +378,35 @@ async def health_check():
             vector_store={"error": str(e)},
             llm_status="unknown",
             model_info={},
-            ollama_endpoint=f"{settings.OLLAMA_HOST}:{settings.OLLAMA_PORT}"
+            grok_endpoint="api.groq.com"
         )
+
+@app.get("/healthz")
+async def healthz():
+    try:
+        basic_checks_ok = True
+        if retriever:
+            try:
+                await asyncio.wait_for(
+                    asyncio.to_thread(lambda: hasattr(retriever.vector_store, 'client')),
+                    timeout=2.0
+                )
+            except (asyncio.TimeoutError, Exception):
+                basic_checks_ok = False
+        
+        if llm_client:
+            try:
+                healthy = await asyncio.wait_for(llm_client.health_check(), timeout=2.0)
+                if not healthy:
+                    basic_checks_ok = False
+            except (asyncio.TimeoutError, Exception):
+                basic_checks_ok = False
+        
+        status = "healthy" if basic_checks_ok else "unhealthy"
+        return {"status": status}
+        
+    except Exception:
+        return {"status": "unhealthy"}
 
 @app.get("/ready")
 async def readiness_probe():
@@ -387,7 +417,7 @@ async def readiness_probe():
         if llm_client:
             healthy = await llm_client.health_check()
             if not healthy:
-                raise HTTPException(status_code=503, detail="Ollama not ready")
+                raise HTTPException(status_code=503, detail="Grok API service not ready")
         
         return {"status": "ready"}
     except Exception as e:
