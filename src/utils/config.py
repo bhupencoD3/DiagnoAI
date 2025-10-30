@@ -4,16 +4,22 @@ from pydantic_settings import BaseSettings
 from pydantic import validator
 
 class Settings(BaseSettings):
-    # Ollama Configuration
+    # Replicate Configuration
+    REPLICATE_API_TOKEN: str  
+    REPLICATE_MODEL: str = "mistralai/mistral-7b-v0.2" 
+    LLM_PROVIDER: str ="grok" 
+    
+    # Ollama Configuration (keep for fallback)
     OLLAMA_HOST: str = "localhost"
     OLLAMA_PORT: int = 11434
     OLLAMA_MODEL: str = "mistral:7b-instruct"  
 
     # OpenAI Configuration for embeddings
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: str  # Remove default value
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
     OPENAI_EMBEDDING_DIMENSIONS: int = 1536
 
+    GROK_API_KEY: str
     # Huggingface
     HF_TOKEN: Optional[str] = None
 
@@ -27,8 +33,10 @@ class Settings(BaseSettings):
     COLLECTION_NAME: str = "medical_knowledge"
 
     # LLM Configuration
-    LLM_PROVIDER: Literal['ollama', 'openai'] = "ollama"
+    LLM_PROVIDER: Literal['ollama', 'openai', 'grok'] = "grok"
     OPENAI_LLM_MODEL: str = "gpt-3.5-turbo"
+    OLLAMA_TIMEOUT: int = 180
+    REPLICATE_TIMEOUT: int = 120  # Reduced for Phi-3 speed
 
     # API Configuration
     API_HOST: str = "0.0.0.0"
@@ -63,10 +71,16 @@ class Settings(BaseSettings):
             raise ValueError("OPENAI_API_KEY must be set in environment variables or .env file")
         return v
 
-    @validator("OLLAMA_MODEL")
-    def validate_ollama_model(cls, v):
+    @validator("REPLICATE_API_TOKEN")
+    def validate_replicate_token(cls, v):
+        if not v or v == "your-replicate-api-token-here":
+            raise ValueError("REPLICATE_API_TOKEN must be set in environment variables or .env file")
+        return v
+    
+    @validator("GROK_API_KEY")
+    def validate_grok_key(cls, v):
         if not v:
-            raise ValueError("OLLAMA_MODEL must be specified")
+            raise ValueError("GROK_API_KEY must be set in environment variables or .env file")
         return v
 
 # Global settings instance
@@ -85,8 +99,22 @@ def validate_settings():
     for directory in required_dirs:
         os.makedirs(directory, exist_ok=True)
 
-    # Test Ollama connection if using Ollama LLM
-    if settings.LLM_PROVIDER == 'ollama':
+    # Test Replicate connection if using Replicate LLM
+    if settings.LLM_PROVIDER == 'replicate':
+        try:
+            import replicate
+            print(f"Testing Replicate with model: {settings.REPLICATE_MODEL}")
+            print(f"Token starts with: {settings.REPLICATE_API_TOKEN[:10]}...")
+            
+            client = replicate.Client(api_token=settings.REPLICATE_API_TOKEN)
+            # Test connection by listing models
+            models = client.models.list()
+            print(f"Replicate API configured successfully. Found {len(list(models))} models")
+        except Exception as e:
+            raise ConnectionError(f"Replicate API connection failed: {e}")
+
+    # Test Ollama connection if using Ollama LLM (fallback)
+    elif settings.LLM_PROVIDER == 'ollama':
         try:
             import requests
             response = requests.get(f"http://{settings.OLLAMA_HOST}:{settings.OLLAMA_PORT}/api/tags", timeout=10)
