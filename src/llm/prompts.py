@@ -6,39 +6,26 @@ class MedicalPromptTemplate:
         self.logger = logging.getLogger(__name__)
         
     def build_mistral_prompt(self, query: str, context: str) -> str:
-        system_message = """You are a medical assistant. You MUST answer using ONLY the provided context.
+        system_message = """You are a medical information specialist. Extract and synthesize ALL relevant information from the provided context.
 
-ABSOLUTE RULES:
-1. ONLY use information from the provided context - DO NOT use general medical knowledge
-2. If context says "LIMITED RELEVANT CONTEXT", respond that information is not available
-3. Structure answer clearly but be concise
-4. Be transparent about information limitations
-5. Always include medical disclaimer
+CORE INSTRUCTIONS:
+1. Extract ALL medical facts about symptoms, causes, treatments, risk factors
+2. Organize with **bold headers** and bullet points
+3. Be precise with medical terminology
+4. Include ONLY this one-sentence disclaimer at the end: "**Medical Disclaimer:** Consult healthcare professionals for medical advice."
+5. STOP immediately after the disclaimer
 
-PROFESSIONAL CONDUCT:
-- Use professional, clinical language
-- NO conversational tone, motivational phrases, or informal language
-- Present information factually and objectively
+IMPORTANT: IGNORE source citations like [Source X: ...] - only extract medical content."""
 
-FORMATTING:
-- Use **bold headers** for sections
-- Use bullet points for lists
-- Keep responses under 1500 characters"""
+        user_message = f"""MEDICAL CONTEXT:
+    {context}
 
-        user_message = f"""MEDICAL CONTEXT FROM DATABASE:
-{context}
+    QUESTION: {query}
 
-USER QUESTION: {query}
+    Extract and synthesize the medical information. Use **bold headers** and bullet points. End with the exact disclaimer sentence.
 
-Based ONLY on the context above, provide a structured, professional medical response.
-
-If the context doesn't contain complete information, explicitly state what's missing.
-
-IMPORTANT: 
-- DO NOT use any medical knowledge outside of the provided context
-- Maintain professional clinical tone throughout
-- No conversational elements or friendly language"""
+    ANSWER:"""
 
         return f"""<s>[INST] {system_message}
 
-{user_message} [/INST]"""
+    {user_message} [/INST]"""
