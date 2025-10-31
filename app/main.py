@@ -26,7 +26,26 @@ from src.rag.vector_store import MedicalVectorStore
 from src.llm.grok_client import GrokClient
 from src.utils.config import settings
 from src.utils.logger import setup_logging
-from data.medical_dictionary import MEDICAL_TERMS_DICTIONARY, CATEGORY_COLORS
+
+
+try:
+    from data.medical_dictionary import MEDICAL_TERMS_DICTIONARY, CATEGORY_COLORS
+    print(f"✓ Successfully imported medical dictionary with {len(MEDICAL_TERMS_DICTIONARY)} terms")
+except ImportError as e:
+    print(f"Initial import failed: {e}")
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("medical_dictionary", str(PROJECT_ROOT / "data" / "medical_dictionary.py"))
+        medical_dict_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(medical_dict_module)
+        MEDICAL_TERMS_DICTIONARY = medical_dict_module.MEDICAL_TERMS_DICTIONARY
+        CATEGORY_COLORS = medical_dict_module.CATEGORY_COLORS
+        print(f"✓ Successfully imported medical dictionary via absolute path with {len(MEDICAL_TERMS_DICTIONARY)} terms")
+    except Exception as e2:
+        print(f"All import attempts failed: {e2}")
+        MEDICAL_TERMS_DICTIONARY = {}
+        CATEGORY_COLORS = {}
+        print("Using empty dictionaries as fallback")
 
 setup_logging()
 logger = logging.getLogger(__name__)
