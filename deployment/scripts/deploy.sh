@@ -3,30 +3,32 @@ set -e
 
 echo "🚀 Deploying DiagnoAI with Grok API..."
 
-KUBE_CMD="kubectl --request-timeout=30s"
+KUBE_CMD="kubectl"
 
 echo "🔧 Applying manifests..."
 
-$KUBE_CMD apply -f deployment/k8s/namespace.yaml --validate=false
+$KUBE_CMD apply -f deployment/k8s/namespace.yaml
 echo "✅ Namespace created"
 
-$KUBE_CMD apply -f deployment/k8s/vector-store-pvc.yaml --validate=false
-$KUBE_CMD apply -f deployment/k8s/data-pvc.yaml --validate=false
+$KUBE_CMD apply -f deployment/k8s/vector-store-pvc.yaml
+$KUBE_CMD apply -f deployment/k8s/data-pvc.yaml
 echo "✅ PVCs created"
 
-$KUBE_CMD apply -f deployment/k8s/secrets.yaml --validate=false
-$KUBE_CMD apply -f deployment/k8s/configmap.yaml --validate=false
-$KUBE_CMD apply -f deployment/k8s/deployment.yaml --validate=false
-$KUBE_CMD apply -f deployment/k8s/service.yaml --validate=false
-$KUBE_CMD apply -f deployment/k8s/hpa.yaml --validate=false
+$KUBE_CMD apply -f deployment/k8s/secrets.yaml
+$KUBE_CMD apply -f deployment/k8s/configmap.yaml
+$KUBE_CMD apply -f deployment/k8s/deployment.yaml
+$KUBE_CMD apply -f deployment/k8s/service.yaml
 echo "✅ DiagnoAI application deployed"
 
 echo "⏳ Waiting for DiagnoAI to be ready..."
-$KUBE_CMD rollout status deployment/diagnoai -n diagnoai --timeout=300s
+$KUBE_CMD rollout status deployment/diagnoai -n diagnoai --timeout=600s
 
 echo "✅ Deployment completed!"
-echo "📊 Checking services..."
+
+NODE_IP=$(hostname -I | awk '{print $1}')
+echo "📊 Current status:"
 $KUBE_CMD get all -n diagnoai
 
-EXTERNAL_IP=$($KUBE_CMD get svc diagnoai-service -n diagnoai -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || echo "Pending")
-echo "🌐 Your DiagnoAI will be available at: http://$EXTERNAL_IP:8000"
+echo ""
+echo "🌐 Your DiagnoAI is available at: http://$NODE_IP:30080"
+echo "💾 Vector store data is persisted in PVCs"

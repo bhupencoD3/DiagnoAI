@@ -6,7 +6,7 @@ metadata:
   labels:
     app: diagnoai
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: diagnoai
@@ -25,18 +25,33 @@ spec:
         - configMapRef:
             name: diagnoai-config
         env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: diagnoai-secrets
+              key: openai-api-key
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: diagnoai-secrets
+              key: hf-token
         - name: GROK_API_KEY
           valueFrom:
             secretKeyRef:
               name: diagnoai-secrets
               key: grok-api-key
+        - name: REPLICATE_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: diagnoai-secrets
+              key: replicate-api-token
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "4Gi"
+            cpu: "1000m"
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "6Gi"
+            cpu: "2000m"
         startupProbe:
           httpGet:
             path: /health
@@ -47,13 +62,13 @@ spec:
           httpGet:
             path: /health
             port: 8000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /ready
             port: 8000
-          initialDelaySeconds: 15
+          initialDelaySeconds: 30
           periodSeconds: 5
         volumeMounts:
         - name: vector-store-volume

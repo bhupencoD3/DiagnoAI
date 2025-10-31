@@ -32,6 +32,8 @@ MANIFEST
 *.manifest
 *.spec
 
+deployment/k8s/secrets.yaml
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -211,4 +213,4 @@ data/raw/
 *.bin
 *.sqlite3
 *.jsonl
-data/vector_store
+data/vector_storedeployment/k8s/secrets.yaml

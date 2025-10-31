@@ -111,7 +111,7 @@ Answer:"""
                             "stop": ["</s>", "[INST]", "[/INST]"]
                         }
                     },
-                    timeout=aiohttp.ClientTimeout(total=60)
+                    timeout=aiohttp.ClientTimeout(total=settings.OLLAMA_TIMEOUT)
                 ) as response:
                     
                     if response.status != 200:
