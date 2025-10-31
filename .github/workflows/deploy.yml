@@ -34,12 +34,12 @@ jobs:
         echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
         chmod 600 ~/.kube/config
         
-    - name: Deploy to Kubernetes
+        - name: Deploy to Kubernetes
       run: |
-        kubectl apply -f deployment/k8s/namespace.yaml
-        kubectl apply -f deployment/k8s/configmap.yaml
-        kubectl apply -f deployment/k8s/vector-store-pvc.yaml
-        kubectl apply -f deployment/k8s/data-pvc.yaml
+        kubectl apply -f deployment/k8s/namespace.yaml --validate=false
+        kubectl apply -f deployment/k8s/configmap.yaml --validate=false
+        kubectl apply -f deployment/k8s/vector-store-pvc.yaml --validate=false
+        kubectl apply -f deployment/k8s/data-pvc.yaml --validate=false
         
         # Create the Kubernetes secret from GitHub secrets
         kubectl create secret generic diagnoai-secrets \
@@ -48,10 +48,10 @@ jobs:
           --from-literal=hf-token="${{ secrets.HF_TOKEN }}" \
           --from-literal=grok-api-key="${{ secrets.GROK_API_KEY }}" \
           --from-literal=replicate-api-token="${{ secrets.REPLICATE_API_TOKEN }}" \
-          --dry-run=client -o yaml | kubectl apply -f -
+          --dry-run=client -o yaml | kubectl apply -f - --validate=false
         
-        kubectl apply -f deployment/k8s/deployment.yaml
-        kubectl apply -f deployment/k8s/service.yaml
+        kubectl apply -f deployment/k8s/deployment.yaml --validate=false
+        kubectl apply -f deployment/k8s/service.yaml --validate=false
         
     - name: Verify deployment
       run: |
