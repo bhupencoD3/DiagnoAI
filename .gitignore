@@ -214,3 +214,7 @@ data/raw/
 *.sqlite3
 *.jsonl
 data/vector_storedeployment/k8s/secrets.yaml
+deployment/k8s/secrets.yaml
+*.key
+*.token
+.env
