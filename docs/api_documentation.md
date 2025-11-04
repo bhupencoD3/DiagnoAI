@@ -118,9 +118,9 @@ All return JSON; used for K8s probes.
 - **GET /dictionary-stats**: Dict overview (e.g., `{"total_terms": 25, "categories": ["cardiovascular", ...]}`).
 
 ## Implementation Notes
-- **Pydantic Models**: Defined in [src/api/models.py](src/api/models.py) for validation.
+- **Pydantic Models**: Defined in [../src/api/models.py](../src/api/models.py) for validation.
 - **Security**: No auth; prod: Add JWT/middleware. Sanitize inputs to prevent prompt injection.
-- **Testing**: Run `pytest app/tests/` for endpoint coverage.
+- **Testing**: Run `pytest ../app/tests/` for endpoint coverage.
 - **Extensions**: Add auth via `fastapi-security`; rate-limit with `slowapi`.
 
-For code-level details, see [app/main.py](app/main.py).
+For code-level details, see [../app/main.py](../app/main.py).
