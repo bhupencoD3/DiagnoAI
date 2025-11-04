@@ -55,7 +55,7 @@ Unified KB from datasets (MedlinePlus/Meadow/OpenFDA). Array of chunk objects.
 ```
 
 ## 2. API Request/Response Schemas
-From Pydantic models in [src/api/models.py](src/api/models.py).
+From Pydantic models in [../src/api/models.py](../src/api/models.py).
 
 ### QueryRequest (POST /query)
 ```json
@@ -136,5 +136,4 @@ From Pydantic models in [src/api/models.py](src/api/models.py).
 - Tools: jsonschema.net for testing; integrate with CI (e.g., pre-commit hooks).
 - Evolution: v1.0 schemas; bump on changes (see CHANGELOG.md).
 
-For raw files, see [data/processed/](data/processed/).
-```
+For raw files, see [../data/processed/](../data/processed/).
