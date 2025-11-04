@@ -56,17 +56,91 @@ DiagnoAI is a medical question-answering system that combines Retrieval-Augmente
 | Configuration | Pydantic-based ([utils/config.py](utils/config.py)) | Environment-specific settings for dev/prod |
 
 ### SYSTEM ARCHITECTURE
+
 ```mermaid
-graph TD
-    A[Web Frontend<br/>static/index.html] --> B[FastAPI Backend<br/>app/main.py]
-    B --> C[RAG Engine<br/>src/rag/]
-    C --> D[Vector Store<br/>ChromaDB in data/vector_store/]
-    D --> E[Medical Dictionary<br/>data/medical_dictionary.py]
-    C --> F[LLM Service<br/>src/llm/grok_client.py or ollama_client.py]
-    F --> G[Answer Generator<br/>src/llm/prompts.py]
-    H[Monitoring & Logging<br/>src/utils/logger.py] -.-> B
-    H -.-> F
-    I[Data Processing<br/>src/data_processing/] -.-> D
+graph TB
+    %% Frontend Layer
+    subgraph "Frontend Layer"
+        A[Web Interface<br/>static/index.html]
+        A --> B[Medical Term Highlighter<br/>Real-time Processing]
+    end
+
+    %% API Gateway Layer
+    subgraph "API Gateway Layer"
+        C[FastAPI Gateway<br/>app/main.py]
+        C --> D[Request Router]
+        D --> E[Authentication<br/>Rate Limiting]
+        D --> F[Request Validation]
+    end
+
+    %% Core Service Layer
+    subgraph "Core Service Layer"
+        G[RAG Engine<br/>src/rag/]
+        H[LLM Orchestrator<br/>src/llm/]
+        I[Medical Dictionary<br/>data/medical_dictionary.py]
+        
+        G --> J[Vector Store<br/>ChromaDB]
+        G --> K[Embedding Service<br/>OpenAI/Local]
+        H --> L[Grok API Client<br/>Llama 3.3 70B]
+        H --> M[Ollama Fallback<br/>Local Models]
+    end
+
+    %% Data Processing Layer
+    subgraph "Data Processing Layer"
+        N[Data Ingestion Pipeline<br/>scripts/]
+        O[Medical Knowledge Base<br/>data/processed/]
+        P[Quality Metrics<br/>data/processed/metrics/]
+        
+        N --> Q[MedlinePlus Processor]
+        N --> R[Medical Meadow Processor]
+        N --> S[FDA Drugs Processor]
+    end
+
+    %% Infrastructure Layer
+    subgraph "Infrastructure Layer"
+        T[Kubernetes Cluster<br/>k3s]
+        U[Docker Containerization]
+        V[Persistent Storage<br/>PVCs]
+        W[Monitoring & Logging<br/>src/utils/logger.py]
+    end
+
+    %% External Services
+    subgraph "External Services"
+        X[Grok API<br/>api.groq.com]
+        Y[MedlinePlus API<br/>medlineplus.gov]
+        Z[Wikipedia API<br/>en.wikipedia.org]
+    end
+
+    %% Data Flow
+    A --> C
+    C --> G
+    C --> H
+    G --> J
+    G --> K
+    H --> X
+    H --> M
+    N --> O
+    O --> J
+    W -.-> C
+    W -.-> G
+    W -.-> H
+    I -.-> A
+    I -.-> G
+    
+    %% Styling
+    classDef frontend fill:#e1f5fe
+    classDef api fill:#f3e5f5
+    classDef core fill:#e8f5e8
+    classDef data fill:#fff3e0
+    classDef infra fill:#fce4ec
+    classDef external fill:#ffebee
+    
+    class A,B frontend
+    class C,D,E,F api
+    class G,H,I,J,K,L,M core
+    class N,O,P,Q,R,S data
+    class T,U,V,W infra
+    class X,Y,Z external
 ```
 
 ## DATASETS AND ATTRIBUTION
@@ -583,9 +657,11 @@ Track progress: [Open Issues](https://github.com/bhupencoD3/DiagnoAI/issues?q=is
 - Screenshots: UI demos in screenshots/
 - Purpose: Educational demonstration of medical RAG systems
 
-<div style="color: #d32f2f; font-weight: bold; border-left: 4px solid #d32f2f; padding: 12px 16px; margin: 20px 0; background: rgba(255, 47, 47, 0.05); border-radius: 4px;">
-This is an educational demonstration of RAG systems in healthcare. Never use AI systems for actual medical decisions without professional validation and oversight. The presence of a live demo does not indicate medical reliability or accuracy. Always consult healthcare professionals for medical concerns.
-</div>
+> **⚠️ MEDICAL SAFETY WARNING**
+> 
+> This is an educational demonstration of RAG systems in healthcare. Never use AI systems for actual medical decisions without professional validation and oversight. The presence of a live demo does not indicate medical reliability or accuracy.
+> 
+> **Always consult healthcare professionals for medical concerns.**
 
 **Last Updated:** November 04, 2025  
 **Project Status:** Educational Demonstration  
