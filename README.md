@@ -53,7 +53,7 @@ DiagnoAI is a medical question-answering system that combines Retrieval-Augmente
 | LLM Service | Grok API (Llama 3.3 70B) or local Ollama | Answer generation with structured formatting |
 | Orchestration | Kubernetes with k3s or Docker Compose | Container orchestration, scaling, and local development |
 | Data Sources | MedlinePlus, Medical Meadow, FDA Drugs | Medical knowledge base with processed datasets |
-| Configuration | Pydantic-based ([config/settings.py](config/settings.py)) | Environment-specific settings for dev/prod |
+| Configuration | Pydantic-based ([utils/config.py](utils/config.py)) | Environment-specific settings for dev/prod |
 
 ### SYSTEM ARCHITECTURE
 ```mermaid
@@ -243,7 +243,7 @@ pip install -r requirements.txt
 ```
 
 #### 2. Environment Configuration
-Create config files based on [settings.py](config/settings.py):
+Create config files based on [config.py](utils/config.py):
 ```
 # Use config/development.py for local dev
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
