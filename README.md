@@ -61,54 +61,54 @@ DiagnoAI is a medical question-answering system that combines Retrieval-Augmente
 graph TB
     %% Frontend Layer
     subgraph "Frontend Layer"
-        A[Web Interface<br/>static/index.html]
-        A --> B[Medical Term Highlighter<br/>Real-time Processing]
+        A[Web Interface<br/><b>static/index.html</b>]
+        A --> B[Medical Term Highlighter<br/><b>Real-time Processing</b>]
     end
 
     %% API Gateway Layer
     subgraph "API Gateway Layer"
-        C[FastAPI Gateway<br/>app/main.py]
-        C --> D[Request Router]
-        D --> E[Authentication<br/>Rate Limiting]
-        D --> F[Request Validation]
+        C[FastAPI Gateway<br/><b>app/main.py</b>]
+        C --> D[Request Router<br/><b>Endpoint Management</b>]
+        D --> E[Authentication<br/><b>Rate Limiting</b>]
+        D --> F[Request Validation<br/><b>Pydantic Schemas</b>]
     end
 
     %% Core Service Layer
     subgraph "Core Service Layer"
-        G[RAG Engine<br/>src/rag/]
-        H[LLM Orchestrator<br/>src/llm/]
-        I[Medical Dictionary<br/>data/medical_dictionary.py]
+        G[RAG Engine<br/><b>src/rag/</b>]
+        H[LLM Orchestrator<br/><b>src/llm/</b>]
+        I[Medical Dictionary<br/><b>data/medical_dictionary.py</b>]
         
-        G --> J[Vector Store<br/>ChromaDB]
-        G --> K[Embedding Service<br/>OpenAI/Local]
-        H --> L[Grok API Client<br/>Llama 3.3 70B]
-        H --> M[Ollama Fallback<br/>Local Models]
+        G --> J[Vector Store<br/><b>ChromaDB</b>]
+        G --> K[Embedding Service<br/><b>OpenAI/Local</b>]
+        H --> L[Grok API Client<br/><b>Llama 3.3 70B</b>]
+        H --> M[Ollama Fallback<br/><b>Local Models</b>]
     end
 
     %% Data Processing Layer
     subgraph "Data Processing Layer"
-        N[Data Ingestion Pipeline<br/>scripts/]
-        O[Medical Knowledge Base<br/>data/processed/]
-        P[Quality Metrics<br/>data/processed/metrics/]
+        N[Data Ingestion Pipeline<br/><b>scripts/</b>]
+        O[Medical Knowledge Base<br/><b>data/processed/</b>]
+        P[Quality Metrics<br/><b>data/processed/metrics/</b>]
         
-        N --> Q[MedlinePlus Processor]
-        N --> R[Medical Meadow Processor]
-        N --> S[FDA Drugs Processor]
+        N --> Q[MedlinePlus Processor<br/><b>1,022 chunks</b>]
+        N --> R[Medical Meadow Processor<br/><b>11,613 Q&A</b>]
+        N --> S[FDA Drugs Processor<br/><b>Drug Safety</b>]
     end
 
     %% Infrastructure Layer
     subgraph "Infrastructure Layer"
-        T[Kubernetes Cluster<br/>k3s]
-        U[Docker Containerization]
-        V[Persistent Storage<br/>PVCs]
-        W[Monitoring & Logging<br/>src/utils/logger.py]
+        T[Kubernetes Cluster<br/><b>k3s</b>]
+        U[Docker Containerization<br/><b>Container Runtime</b>]
+        V[Persistent Storage<br/><b>PVCs</b>]
+        W[Monitoring & Logging<br/><b>src/utils/logger.py</b>]
     end
 
     %% External Services
     subgraph "External Services"
-        X[Grok API<br/>api.groq.com]
-        Y[MedlinePlus API<br/>medlineplus.gov]
-        Z[Wikipedia API<br/>en.wikipedia.org]
+        X[Grok API<br/><b>api.groq.com</b>]
+        Y[MedlinePlus API<br/><b>medlineplus.gov</b>]
+        Z[Wikipedia API<br/><b>en.wikipedia.org</b>]
     end
 
     %% Data Flow
@@ -127,13 +127,13 @@ graph TB
     I -.-> A
     I -.-> G
     
-    %% Styling
-    classDef frontend fill:#e1f5fe
-    classDef api fill:#f3e5f5
-    classDef core fill:#e8f5e8
-    classDef data fill:#fff3e0
-    classDef infra fill:#fce4ec
-    classDef external fill:#ffebee
+    %% Styling with better contrast
+    classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000000
+    classDef api fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000000
+    classDef core fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000000
+    classDef data fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+    classDef infra fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000000
+    classDef external fill:#ffebee,stroke:#b71c1c,stroke-width:2px,color:#000000
     
     class A,B frontend
     class C,D,E,F api
