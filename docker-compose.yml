@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  diagnoai:
+    image: ghcr.io/bhupencod3/diagnoai:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+    restart: unless-stopped
