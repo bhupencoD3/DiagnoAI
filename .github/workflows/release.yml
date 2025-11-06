@@ -30,14 +30,20 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
+      - name: Convert repository to lowercase
+        id: repo_lower
+        run: echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+      
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}
+            ghcr.io/${{ steps.repo_lower.outputs.REPO_LOWER }}:latest
+            ghcr.io/${{ steps.repo_lower.outputs.REPO_LOWER }}:${{ steps.version.outputs.VERSION }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -49,7 +55,7 @@ jobs:
             
             ### Docker Image Available
             ```bash
-            docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.VERSION }}
+            docker pull ghcr.io/${{ steps.repo_lower.outputs.REPO_LOWER }}:${{ steps.version.outputs.VERSION }}
             ```
             
             ### Features
